@@ -43,17 +43,40 @@ app.use(express.static(basedir));
 app.use(helmet());
 app.use(compression());
 
-// Express Session
-app.use(
-  session({
-    secret: config.site.secret,
-    saveUninitialized: true,
-    resave: true
-  })
-);
 
-if (env === 'development') {
-  app.use(morgan('dev'));
+if (env === "development") {
+  app.use(morgan("dev"));
+  console.log("ENV: development");
+  const MongoStore = require("connect-mongo")(session);
+  // Express Session
+  app.use(
+    session({
+      secret: config.site.secret,
+      saveUninitialized: true,
+      resave: true,
+      maxAge: new Date(Date.now() + 3600000),
+      store: new MongoStore(
+        // Following lines of code doesn't work
+        // with the connect-mongo version 1.2.1(2016-06-20).
+        //    {db:mongoose.connection.db},
+        //    function(err){
+        //        console.log(err || 'connect-mongodb setup ok');
+        //   }
+        { mongooseConnection: db }
+      )
+    })
+  );
+} else if (env === "production") {
+  // Express Session
+  console.log("ENV: production");
+  app.use(
+    session({
+      secret: config.site.secret,
+      saveUninitialized: true,
+      resave: true,
+      maxAge: new Date(Date.now() + 9000000)
+    })
+  );
 }
 
 require('./config/passport')(passport);
@@ -92,14 +115,15 @@ app.use(function(req, res, next) {
   next();
 });
 
+
+// ASSIGNING ROUTES TO APP
+app.use(routes);
+
 // Error handler
 app.use(function(err, req, res, next) {
   console.error(err.stack);
   res.status(500).send('Something broke!');
 });
-
-// ASSIGNING ROUTES TO APP
-app.use(routes);
 
 app.listen(config.site.port, () => {
   console.log(`${config.site.name} running on port ${config.site.port} 😀 🖥`);

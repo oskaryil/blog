@@ -7,8 +7,12 @@ const constants = require('./constants');
 
 mongoose.Promise = global.Promise;
 
+let mongooseConnection;
+
 try {
-  mongoose.connect(constants.MONGO_URL, { useMongoClient: true });
+  mongooseConnection = mongoose.connect(constants.MONGO_URL, { useMongoClient: true });
 } catch (err) {
-  mongoose.createConnection(constants.MONGO_URL, { useMongoClient: true });
+  mongooseConnection = mongoose.createConnection(constants.MONGO_URL, { useMongoClient: true });
 }
+
+module.exports = mongooseConnection;

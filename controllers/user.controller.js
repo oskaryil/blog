@@ -18,7 +18,7 @@ const postLogin = (req, res, next) => {
     res.render('login', {
       errors: errors
     });
-    return res.redirect('/login');
+		return res.redirect('/users/login');
   }
 
   passport.authenticate('local', (err, user, info) => {
@@ -27,7 +27,7 @@ const postLogin = (req, res, next) => {
     }
     if (!user) {
       req.flash('error_msg', info.message);
-      return res.redirect('/login');
+			return res.redirect('/users/login');
     }
     req.logIn(user, err => {
       if (err) {
